@@ -6,7 +6,7 @@
     <title>Menü - Waiterly</title>
     <style>
       body {
-        font-family: Arial;
+        font-family: Arial, sans-serif;
         text-align: center;
         margin-top: 50px;
         background-color: #f9f9f9;
@@ -20,12 +20,74 @@
         background-color: white;
         cursor: pointer;
         transition: 0.2s;
+        -webkit-tap-highlight-color: transparent;
       }
-      button:hover {
-        background-color: #f0f0f0;
+      
+      @media (hover: hover) {
+        button:hover {
+          background-color: #f0f0f0;
+        }
       }
 
-      /* General Modal Overlay */
+      button:active {
+        background-color: #e0e0e0;
+      }
+
+      /* MENÜ LİSTESİ VE KART TASARIMI */
+      .menu-item {
+        margin: 15px auto;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 450px;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+      }
+
+      @media (hover: hover) {
+        .menu-item:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+      }
+
+      .menu-item:active {
+        transform: scale(0.98);
+        background-color: #fafafa;
+      }
+
+      .menu-item-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .item-thumbnail {
+        width: 70px;
+        height: 70px;
+        border-radius: 8px;
+        object-fit: cover;
+        margin-left: 15px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      }
+
+      .item-controls {
+        margin-top: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        /* Butonların dışarı taşmasını engeller */
+        padding-top: 10px;
+        border-top: 1px dashed #eee; 
+      }
+
+      /* MODAL (BİLGİ EKRANI) TASARIMI */
       .item-modal-overlay {
         display: none;
         position: fixed;
@@ -38,11 +100,10 @@
         backdrop-filter: blur(3px);
       }
 
-      /* Item Details Card (Centered) */
       .item-modal-card {
         background: #fff;
         width: 90%;
-        max-width: 350px;
+        max-width: 450px; /* MODAL BÜYÜTÜLDÜ */
         border-radius: 12px;
         overflow: hidden;
         position: absolute;
@@ -52,27 +113,40 @@
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         text-align: left;
       }
+
       .modal-close-btn {
         position: absolute;
         top: 10px;
         right: 10px;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         background: rgba(255, 255, 255, 0.9);
         border: none;
         border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        font-weight: bold;
         cursor: pointer;
+        font-weight: bold;
+        font-size: 20px;
+        line-height: 1;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
       }
+
+      .modal-close-btn:hover {
+         background: #e3e1e1;
+      }
+
       .modal-img {
         width: 100%;
-        height: 220px;
+        height: 280px; /* RESİM BOYUTU BÜYÜTÜLDÜ */
         object-fit: cover;
       }
+
       .modal-content {
         padding: 20px;
       }
+
       .alerjen-kutu {
         margin-top: 15px;
         padding: 10px;
@@ -82,23 +156,23 @@
         display: none;
       }
 
-      /* NEW: Side Drawer Filter Styles */
+      /* DRAWER FILTER STYLES */
       .filter-drawer {
         position: fixed;
         top: 0;
-        right: -320px; /* Hidden off-screen by default */
+        right: -320px;
         width: 300px;
         height: 100%;
         background-color: white;
         box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
         transition: right 0.3s ease-in-out;
-        z-index: 9999; /* Highest priority */
+        z-index: 9999;
         display: flex;
         flex-direction: column;
         text-align: left;
       }
       .filter-drawer.open {
-        right: 0; /* Slides in */
+        right: 0;
       }
       .drawer-header {
         padding: 20px;
@@ -154,38 +228,36 @@
         color: white;
         border: none;
       }
-      .btn-apply:hover {
-        background-color: #45a049;
-      }
     </style>
   </head>
   <body>
     <h1>Lezzetlerimiz 🍕</h1>
     <p>İstediğiniz ürünleri sepetinize ekleyebilirsiniz.</p>
 
-    <button
-      onclick="openFilterDrawer()"
-      style="
-        margin-bottom: 20px;
-        padding: 10px 25px;
-        border-radius: 25px;
-        font-weight: bold;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      "
-    >
-      Alerjen Filtresi ⚙️
-    </button>
+    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+      <button
+        id="vegan-toggle-btn"
+        onclick="toggleVegan()"
+        style="padding: 10px 25px; border-radius: 25px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 2px solid #4CAF50; color: #4CAF50; background: white;"
+      >🌱 Vegan</button>
+      <button
+        onclick="openFilterDrawer()"
+        style="padding: 10px 25px; border-radius: 25px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);"
+      >Alerjen Filtresi ⚙️</button>
+    </div>
 
     <div id="menu-list"></div>
     <br /><br />
 
     <button
-      onclick="goToCart()"
+      onclick="window.location.href = '/cart.html'"
       style="border-color: #4caf50; color: #4caf50; font-weight: bold"
     >
       Sepete Git 🛒
     </button>
     <button onclick="window.location.href = '/'">Anasayfaya Dön 🏠</button>
+
+    <br><br><br>
 
     <div
       id="item-modal-overlay"
@@ -199,68 +271,25 @@
         <img id="modal-img" class="modal-img" src="" alt="Ürün" />
 
         <div class="modal-content">
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-            "
-          >
-            <h2
-              id="modal-title"
-              style="margin: 0; font-size: 24px; color: #333"
-            >
-              İsim
-            </h2>
-            <span
-              style="
-                background: #fff8e1;
-                color: #ff8f00;
-                padding: 4px 8px;
-                border-radius: 12px;
-                font-weight: bold;
-                font-size: 14px;
-                border: 1px solid #ffcc80;
-              "
-              >⭐ <span id="modal-rating">4.5</span></span
-            >
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 id="modal-title" style="margin: 0; font-size: 26px; color: #333">İsim</h2>
+            <span style="background: #fff8e1; color: #ff8f00; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 15px; border: 1px solid #ffcc80;">
+              ⭐ <span id="modal-rating">4.5</span>
+            </span>
           </div>
-          <p
-            id="modal-price"
-            style="
-              color: #4caf50;
-              font-weight: bold;
-              font-size: 18px;
-              margin-top: 5px;
-            "
-          >
+          <p id="modal-text" style="color: #666; font-size: 16px; font-style: italic; margin-top: 10px; line-height: 1.4;">
+         Ürün açıklaması buraya gelecek.
+         </p>
+          <p id="modal-price" style="color: #4caf50; font-weight: bold; font-size: 22px; margin-top: 10px; margin-bottom: 15px;">
             0 TL
           </p>
 
-          <h4 style="margin-bottom: 5px; color: #555">İçindekiler:</h4>
-          <p
-            id="modal-ingredients"
-            style="
-              margin-top: 0;
-              font-size: 14px;
-              color: #666;
-              line-height: 1.5;
-            "
-          ></p>
+          <h4 style="margin-bottom: 5px; color: #555; font-size: 16px;">İçindekiler:</h4>
+          <p id="modal-ingredients" style="margin-top: 0; font-size: 15px; color: #666; line-height: 1.6;"></p>
 
           <div id="modal-allergens-container" class="alerjen-kutu">
-            <strong style="color: #d32f2f; font-size: 14px"
-              >⚠️ Alerjen Uyarısı:</strong
-            >
-            <p
-              id="modal-allergens"
-              style="
-                margin: 5px 0 0 0;
-                font-size: 13px;
-                color: #d32f2f;
-                font-weight: bold;
-              "
-            ></p>
+            <strong style="color: #d32f2f; font-size: 14px">⚠️ Alerjen Uyarısı:</strong>
+            <p id="modal-allergens" style="margin: 5px 0 0 0; font-size: 14px; color: #d32f2f; font-weight: bold;"></p>
           </div>
         </div>
       </div>
@@ -272,64 +301,28 @@
       onclick="closeFilterDrawer(event)"
       style="z-index: 9998"
     >
-      <div
-        id="filter-drawer"
-        class="filter-drawer"
-        onclick="event.stopPropagation()"
-      >
+      <div id="filter-drawer" class="filter-drawer" onclick="event.stopPropagation()">
         <div class="drawer-header">
-          <h2>Alerjen Filtresi</h2>
-          <button
-            class="modal-close-btn"
-            style="position: relative; top: 0; right: 0"
-            onclick="closeFilterDrawer()"
-          >
+          <h2>Filtreler</h2>
+          <button class="modal-close-btn" style="position: relative; top: 0; right: 0" onclick="closeFilterDrawer()">
             &times;
           </button>
         </div>
 
         <div class="drawer-content">
-          <p
-            style="
-              font-size: 13px;
-              color: #888;
-              margin-top: 0;
-              margin-bottom: 20px;
-            "
-          >
-            Menüden <b>gizlemek</b> istediğiniz alerjenleri seçin:
+          <h3 style="margin-top: 0; font-size: 16px; color: #d32f2f;">Alerjenler (Gizle)</h3>
+          <p style="font-size: 12px; color: #888; margin-top: 0; margin-bottom: 15px;">
+            Menüden gizlemek istediğiniz alerjenleri seçin:
           </p>
-
-          <label class="filter-checkbox-container"
-            ><input type="checkbox" value="Gluten" /> Gluten (Buğday vb.)</label
-          >
-          <label class="filter-checkbox-container"
-            ><input type="checkbox" value="Süt/Laktoz" /> Süt ve Süt
-            Ürünleri</label
-          >
-          <label class="filter-checkbox-container"
-            ><input type="checkbox" value="Yumurta" /> Yumurta</label
-          >
-          <label class="filter-checkbox-container"
-            ><input type="checkbox" value="Kuruyemiş" /> Kuruyemiş (Ceviz,
-            Fındık vb.)</label
-          >
-          <label class="filter-checkbox-container"
-            ><input type="checkbox" value="Yer Fıstığı" /> Yer Fıstığı</label
-          >
-          <label class="filter-checkbox-container"
-            ><input type="checkbox" value="Soya" /> Soya</label
-          >
-          <label class="filter-checkbox-container"
-            ><input type="checkbox" value="Susam" /> Susam</label
-          >
-          <label class="filter-checkbox-container"
-            ><input type="checkbox" value="Deniz Ürünleri" /> Deniz Ürünleri /
-            Balık</label
-          >
-          <label class="filter-checkbox-container"
-            ><input type="checkbox" value="Kereviz" /> Kereviz</label
-          >
+          <label class="filter-checkbox-container"><input type="checkbox" value="Gluten" class="alerjen-cb"/> Gluten (Buğday vb.)</label>
+          <label class="filter-checkbox-container"><input type="checkbox" value="Süt/Laktoz" class="alerjen-cb"/> Süt ve Süt Ürünleri</label>
+          <label class="filter-checkbox-container"><input type="checkbox" value="Yumurta" class="alerjen-cb"/> Yumurta</label>
+          <label class="filter-checkbox-container"><input type="checkbox" value="Kuruyemiş" class="alerjen-cb"/> Kuruyemiş</label>
+          <label class="filter-checkbox-container"><input type="checkbox" value="Yer Fıstığı" class="alerjen-cb"/> Yer Fıstığı</label>
+          <label class="filter-checkbox-container"><input type="checkbox" value="Soya" class="alerjen-cb"/> Soya</label>
+          <label class="filter-checkbox-container"><input type="checkbox" value="Susam" class="alerjen-cb"/> Susam</label>
+          <label class="filter-checkbox-container"><input type="checkbox" value="Deniz Ürünleri" class="alerjen-cb"/> Deniz Ürünleri</label>
+          <label class="filter-checkbox-container"><input type="checkbox" value="Kereviz" class="alerjen-cb"/> Kereviz</label>
         </div>
 
         <div class="drawer-footer">
@@ -338,8 +331,7 @@
         </div>
       </div>
     </div>
-
-    <script src="cart.js"></script>
     <script src="menu_script.js"></script>
+    
   </body>
 </html>

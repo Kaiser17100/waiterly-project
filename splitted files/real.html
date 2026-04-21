@@ -560,8 +560,7 @@
           bodyAlan.appendChild(grupBaslik);
 
           siparis.urunler.forEach((urun) => {
-            let itemName =
-              typeof urun === "string" ? urun : urun.miktar + "x " + urun.isim;
+            let itemName = typeof urun === "string" ? urun : urun.quantity + "x " + urun.isim;
             let itemPrice =
               typeof urun === "string" ? "" : urun.fiyat.toFixed(2) + " TL";
 

@@ -45,7 +45,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
 
     // YENİ: Resim, içerik, alerjen ve puan verileri eklendi
-    const menu = [
+   const menu = [
       {
         id: 1,
         isim: "Latte",
@@ -54,6 +54,8 @@ const server = http.createServer((req, res) => {
         icerik: ["Espresso", "Sıcak Süt", "Süt Köpüğü"],
         alerjenler: ["Süt/Laktoz"],
         resim: "/images/latte.png",
+        aciklama: "Yumuşak içimli, taze çekilmiş espresso ve kadifemsi süt.",
+        vegan: false
       },
       {
         id: 2,
@@ -63,6 +65,8 @@ const server = http.createServer((req, res) => {
         icerik: ["Espresso", "Süt", "Karamel Şurubu"],
         alerjenler: ["Süt/Laktoz"],
         resim: "/images/caramel-latte.png",
+        aciklama: "Karamel severler için tatlı ve dengeli bir kahve deneyimi.",
+        vegan: false
       },
       {
         id: 3,
@@ -72,6 +76,8 @@ const server = http.createServer((req, res) => {
         icerik: ["Taze Sıkım Limon", "Su", "Şeker", "Taze Nane"],
         alerjenler: [],
         resim: "/images/lemonade.png",
+        aciklama: "Taze nane yapraklarıyla hazırlanan ev yapımı serinlik.",
+        vegan: true
       },
       {
         id: 4,
@@ -81,6 +87,8 @@ const server = http.createServer((req, res) => {
         icerik: ["Kola Özütü", "Karbonatlı Su", "Şeker"],
         alerjenler: [],
         resim: "/images/cola.png",
+        aciklama: "Buz gibi, ferahlatıcı klasik lezzet.",
+        vegan: true
       },
       {
         id: 5,
@@ -90,6 +98,8 @@ const server = http.createServer((req, res) => {
         icerik: ["Double Espresso", "Sıcak Su"],
         alerjenler: [],
         resim: "/images/americano.png",
+        aciklama: "Sert kahve sevenlere özel, yoğun ve sade.",
+        vegan: true
       },
       {
         id: 6,
@@ -99,6 +109,8 @@ const server = http.createServer((req, res) => {
         icerik: ["Çilek", "Muz", "Süzme Yoğurt", "Bal"],
         alerjenler: ["Süt/Laktoz"],
         resim: "/images/smoothie.png",
+        aciklama: "Taze meyvelerle hazırlanan sağlıklı ve doyurucu atıştırmalık.",
+        vegan: false
       },
       {
         id: 7,
@@ -108,6 +120,8 @@ const server = http.createServer((req, res) => {
         icerik: ["Tam Buğday Ekmeği", "Hindi Füme", "Kaşar", "Marul"],
         alerjenler: ["Gluten", "Süt/Laktoz"],
         resim: "/images/sandwich.png",
+        aciklama: "Hafif bir mola için taze yeşillikli soğuk sandviç.",
+        vegan: true
       },
       {
         id: 8,
@@ -117,6 +131,8 @@ const server = http.createServer((req, res) => {
         icerik: ["Kinoa", "Avokado", "Nohut", "Mevsim Yeşillikleri"],
         alerjenler: [],
         resim: "/images/bowl.png",
+        aciklama: "Bitkisel protein kaynağı, taze ve besleyici fit kase.",
+        vegan: true
       },
       {
         id: 9,
@@ -126,7 +142,9 @@ const server = http.createServer((req, res) => {
         icerik: ["Bitter Çikolata", "Tereyağı", "Yumurta", "Un", "Ceviz"],
         alerjenler: ["Gluten", "Yumurta", "Süt/Laktoz", "Kuruyemiş"],
         resim: "/images/brownie.png",
-      },
+        aciklama: "Bol cevizli ve yoğun bitter çikolatalı ıslak lezzet bombası.",
+        vegan: false
+      }
     ];
     res.end(JSON.stringify(menu));
   }
