@@ -1,6 +1,5 @@
 FROM node:18-alpine
 WORKDIR /app
-COPY splitted\ files/ .
-COPY Dockerfile .
+COPY . .
 EXPOSE 3000
 CMD ["node", "site.js"]
