@@ -26,8 +26,8 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t kullaniciadin/waiterly:latest .
-          docker push kullaniciadin/waiterly:latest
+          docker build -t ldilanisik/waiterly:latest .
+          docker push ldilanisik/waiterly:latest
 
       - name: Deploy to Render
         run: |
