@@ -105,6 +105,17 @@ let menuDb = [
     aciklama: "Bol cevizli ve yoğun bitter çikolatalı ıslak lezzet bombası.",
     vegan: false,
   },
+  {
+    id: 10,
+    isim: "Karamel",
+    fiyat: 999,
+    puan: -5.0,
+    icerik: ["Karamel"],
+    alerjenler: [""],
+    resim: "/images/brownie.png",
+    aciklama: "Saf Karamel.",
+    vegan: false,
+  },
 ];
 
 // Define the security guard OUTSIDE the server function to keep it clean
