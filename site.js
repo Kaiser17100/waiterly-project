@@ -333,3 +333,12 @@ const server = http.createServer((req, res) => {
     res.end("404 Not Found");
   }
 }); // <-- THE CRITICAL MISSING BRACE HAS BEEN RESTORED!
+
+// ---------------------------------------------------------
+// START THE SERVER
+// ---------------------------------------------------------
+const PORT = 3000;
+server.listen(PORT, () => {
+  console.log(`Sunucu http://localhost:${PORT} adresinde çalışıyor`);
+});
+
