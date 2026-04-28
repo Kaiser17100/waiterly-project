@@ -72,14 +72,13 @@ function rendermenu() {
         if (item.alerjenler) {
             hasAllergen = item.alerjenler.some(alerjen => activeAllergensToAvoid.includes(alerjen));
         }
-        if (hasAllergen) return; // Kullanıcının istemediği alerjen varsa ürünü çizme
+        if (hasAllergen) return; 
     }
 
     let guncelMiktar = getCartQuantity(item.id);
     let div = document.createElement("div");
     div.className = "menu-item";
     
-    // Karta tıklandığında detayı açması için
     div.onclick = () => openItemModal(item.id);
 
     let veganBadge = item.vegan ? `
@@ -115,7 +114,7 @@ function rendermenu() {
   }
 }
 
-// --- FİLTRE ÇEKMECESİ FONKSİYONLARI ---
+// --- FİLTRE ÇEKMECESİ VE YENİ KUTUCUK (GRID) FONKSİYONLARI ---
 function openFilterDrawer() {
   document.getElementById("filter-drawer").classList.add("open");
   document.getElementById("filter-overlay").style.display = "block";
@@ -126,26 +125,37 @@ function closeFilterDrawer() {
   document.getElementById("filter-overlay").style.display = "none";
 }
 
-function applyFilters() {
-  isVeganOnly = document.getElementById("vegan-filter").checked;
-  
-  let checkboxes = document.querySelectorAll(".alerjen-cb");
-  activeAllergensToAvoid = [];
-  checkboxes.forEach(cb => {
-    if(cb.checked) activeAllergensToAvoid.push(cb.value);
-  });
-  
-  rendermenu();
-  closeFilterDrawer();
+// Vegan kartına tıklandığında
+function toggleVegan(element) {
+  isVeganOnly = !isVeganOnly;
+  if (isVeganOnly) {
+      element.classList.add("vegan-selected");
+  } else {
+      element.classList.remove("vegan-selected");
+  }
+  rendermenu(); // Tıklandığı an filtreyi uygula
+}
+
+// Alerjen kartlarına tıklandığında
+function toggleAllergen(alerjen, element) {
+  if (activeAllergensToAvoid.includes(alerjen)) {
+      activeAllergensToAvoid = activeAllergensToAvoid.filter(a => a !== alerjen);
+      element.classList.remove("allergen-selected");
+  } else {
+      activeAllergensToAvoid.push(alerjen);
+      element.classList.add("allergen-selected");
+  }
+  rendermenu(); // Tıklandığı an filtreyi uygula
 }
 
 function clearFilters() {
-  document.getElementById("vegan-filter").checked = false;
-  let checkboxes = document.querySelectorAll(".alerjen-cb");
-  checkboxes.forEach(cb => cb.checked = false);
-  
   isVeganOnly = false;
   activeAllergensToAvoid = [];
+  
+  // Arayüzdeki seçimleri sıfırla
+  document.getElementById("vegan-btn").classList.remove("vegan-selected");
+  let allergenCards = document.querySelectorAll("#allergen-grid .filter-card");
+  allergenCards.forEach(card => card.classList.remove("allergen-selected"));
   
   rendermenu();
   closeFilterDrawer();
