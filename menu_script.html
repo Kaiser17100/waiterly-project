@@ -236,6 +236,10 @@
 
     <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
       <button
+        onclick="openIngredientDrawer()"
+        style="padding: 10px 25px; border-radius: 25px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);"
+      >🍅 İçerik Seç</button>
+      <button
         id="vegan-toggle-btn"
         onclick="toggleVegan()"
         style="padding: 10px 25px; border-radius: 25px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 2px solid #4CAF50; color: #4CAF50; background: white;"
@@ -331,6 +335,31 @@
         </div>
       </div>
     </div>
+
+    <div
+      id="ingredient-overlay"
+      class="item-modal-overlay"
+      onclick="closeIngredientDrawer(event)"
+      style="z-index: 9998"
+    >
+      <div id="ingredient-drawer" class="filter-drawer" onclick="event.stopPropagation()">
+        <div class="drawer-header">
+          <h2>İçerik Filtresi</h2>
+          <button class="modal-close-btn" style="position: relative; top: 0; right: 0" onclick="closeIngredientDrawer()">
+            &times;
+          </button>
+        </div>
+
+        <div class="drawer-content" id="ingredient-list-container">
+          </div>
+
+        <div class="drawer-footer">
+          <button class="btn-clear" onclick="clearIngredientFilters()">Temizle</button>
+          <button class="btn-apply" onclick="applyIngredientFilters()">Uygula</button>
+        </div>
+      </div>
+    </div>
+
     <script src="menu_script.js"></script>
     
   </body>
