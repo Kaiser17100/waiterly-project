@@ -87,8 +87,31 @@ function renderResults(products) {
                 <h3 class="product-title">${product.isim}</h3>
                 <p class="product-desc">${product.aciklama || "Harika bir tercih."}</p>
                 <div class="product-price">${product.fiyat} TL</div>
+                <button class="add-to-cart-btn" onclick="addToCart(${product.id})" style="margin-top: 10px; width: 100%; padding: 10px; background: #ff9800; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Sepete Ekle</button>
             </div>
         `;
         resultsContainer.appendChild(card);
     });
+}
+
+function addToCart(productId) {
+    // Find the product in our fetched menu data
+    const product = menuData.find(p => p.id === productId);
+    if (!product) return;
+    
+    // Grab the current cart, or start a new empty one
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    
+    // Check if item already exists in cart to increase quantity
+    let existingItem = cart.find(item => item.id === productId);
+    if (existingItem) {
+        existingItem.quantity = (existingItem.quantity || 1) + 1;
+    } else {
+        cart.push({ ...product, quantity: 1 });
+    }
+    
+    // Save it back to storage so cart.html can see it
+    localStorage.setItem('cart', JSON.stringify(cart));
+    
+    alert(product.isim + " sepete eklendi! 🛒");
 }
