@@ -301,4 +301,123 @@ function editMenu(id) {
 function resetMenuForm() {
   editingMenuId = null;
   
-  document.querySelector(".add-form h3").innerText = "Yeni Ürün Ekle
+  document.querySelector(".add-form h3").innerText = "Yeni Ürün Ekle";
+  const btnSubmit = document.querySelector(".add-form .btn-submit");
+  btnSubmit.innerText = "✅ Menüye Ekle";
+  btnSubmit.setAttribute("onclick", "addNewItem()");
+  
+  const cancelBtn = document.getElementById("cancel-edit-btn");
+  if (cancelBtn) cancelBtn.remove();
+
+  ["add-isim", "add-fiyat", "add-aciklama", "add-alerjenler", "add-resim"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("add-resim-file").value = "";
+  menuImageBase64 = null;
+  document.getElementById("upload-placeholder").style.display = "block";
+  document.getElementById("upload-preview-wrap").style.display = "none";
+}
+
+function saveMenuItem() {
+  const isim = document.getElementById("add-isim").value.trim();
+  const fiyat = document.getElementById("add-fiyat").value;
+  if (!isim || !fiyat) { alert("⚠️ Ürün adı ve fiyat zorunludur!"); return; }
+  
+  const aciklama = document.getElementById("add-aciklama").value.trim();
+  const alerjenInput = document.getElementById("add-alerjenler").value.trim();
+  const manualResim = document.getElementById("add-resim").value.trim();
+  const alerjenler = alerjenInput ? alerjenInput.split(",").map(a => a.trim()) : [];
+  const resim = menuImageBase64 || manualResim || "/images/americano.jpg";
+
+  fetch(`/api/menu/${editingMenuId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ isim, fiyat: parseFloat(fiyat), aciklama, alerjenler, resim })
+  }).then(r => {
+    if (r.ok) {
+      loadAdminMenu();
+      alert("✅ Ürün başarıyla güncellendi!");
+      resetMenuForm();
+    } else {
+      alert("⚠️ Güncelleme sırasında bir hata oluştu.");
+    }
+  });
+}
+
+function addNewItem() {
+  const isim = document.getElementById("add-isim").value.trim();
+  const fiyat = document.getElementById("add-fiyat").value;
+  if (!isim || !fiyat) { alert("⚠️ Ürün adı ve fiyat zorunludur!"); return; }
+  const aciklama = document.getElementById("add-aciklama").value.trim();
+  const alerjenInput = document.getElementById("add-alerjenler").value.trim();
+  const manualResim = document.getElementById("add-resim").value.trim();
+  const alerjenler = alerjenInput ? alerjenInput.split(",").map(a => a.trim()) : [];
+  const resim = menuImageBase64 || manualResim || "/images/americano.jpg";
+
+  fetch("/api/menu", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({isim, fiyat:parseFloat(fiyat), aciklama, alerjenler, puan:5.0, resim})
+  }).then(r => {
+    if (r.ok) {
+      loadAdminMenu();
+      alert("✅ Ürün başarıyla eklendi!");
+      resetMenuForm(); 
+    }
+  });
+}
+
+function deleteItem(id) {
+  if (confirm("Silinsin mi?"))
+    fetch(`/api/menu/${id}`, {method:"DELETE"}).then(() => loadAdminMenu());
+}
+
+// ══════════════════════════════════════════
+// ORDERS
+// ══════════════════════════════════════════
+function loadOrders() {
+  const orders = JSON.parse(localStorage.getItem("orderHistory")) || [];
+  const tbody = document.getElementById("admin-order-list");
+  tbody.innerHTML = "";
+  if (!orders.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#999;padding:30px;">Henüz sipariş kaydı yok.</td></tr>`;
+    return;
+  }
+  [...orders].reverse().forEach((order, index) => {
+    const urunDetay = order.urunler.map(u => `${u.miktar||u.quantity}x ${u.isim}`).join(", ");
+    tbody.innerHTML += `<tr>
+      <td>${order.tarih||"-"}</td><td>${order.saat||"-"}</td><td>${urunDetay}</td>
+      <td><strong>${order.toplamTutar.toFixed(2)} TL</strong></td>
+      <td><button class="btn-delete" onclick="deleteOrder(${orders.length-1-index})">Sil</button></td>
+    </tr>`;
+  });
+}
+
+function deleteOrder(idx) {
+  if (confirm("Silinsin mi?")) {
+    let orders = JSON.parse(localStorage.getItem("orderHistory")) || [];
+    orders.splice(idx, 1);
+    localStorage.setItem("orderHistory", JSON.stringify(orders));
+    loadOrders();
+  }
+}
+
+function addManualOrder() {
+  const urun = document.getElementById("manual-urunler").value.trim();
+  const tutar = parseFloat(document.getElementById("manual-tutar").value);
+  if (!urun || !tutar) return alert("Eksik bilgi!");
+  const simdi = new Date();
+  const history = JSON.parse(localStorage.getItem("orderHistory")) || [];
+  history.push({
+    tarih: simdi.toLocaleDateString("tr-TR"),
+    saat: simdi.toLocaleTimeString("tr-TR", {hour:"2-digit",minute:"2-digit"}),
+    toplamTutar: tutar,
+    urunler: [{isim:urun, quantity:1}]
+  });
+  localStorage.setItem("orderHistory", JSON.stringify(history));
+  loadOrders();
+}
+
+function logout() {
+  fetch("/api/logout", {method:"POST"}).then(() => window.location.href = "/login.html");
+}
+
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
