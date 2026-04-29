@@ -1,6 +1,8 @@
 let menu = [];
 let activeAllergensToAvoid = []; 
-let isVeganOnly = false; // YENİ: Vegan filtresi durumu
+let isVeganOnly = false;
+
+window.addEventListener("load", menuyuGoster);
 
 function menuyuGoster() {
   fetch("/api/menu")
@@ -34,30 +36,51 @@ function getCartQuantity(id) {
     return item ? item.quantity : 0;
 }
 
+function sepeteEkle(id, change) {
+    let cart = getSafeCart();
+    let existingItem = cart.find(c => c.id === id);
+
+    if (change > 0) {
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            let menuItem = menu.find(m => m.id === id);
+            cart.push({ ...menuItem, quantity: 1 });
+        }
+    } else if (change < 0 && existingItem) {
+        existingItem.quantity -= 1;
+        if (existingItem.quantity <= 0) {
+            cart = cart.filter(c => c.id !== id);
+        }
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    document.getElementById(`qty-${id}`).innerText = getCartQuantity(id);
+}
+
 function rendermenu() {
   const menuList = document.getElementById("menu-list");
   menuList.innerHTML = "";
 
   menu.forEach((item) => {
-    // YENİ: VEGAN FİLTRESİ KONTROLÜ
-    if (isVeganOnly && !item.vegan) {
-        return; // Sadece vegan seçiliyse ve ürün vegan değilse atla (çizme)
-    }
+    // Vegan Filtresi Kontrolü
+    if (isVeganOnly && !item.vegan) return;
 
-    // ALERJEN FİLTRESİ KONTROLÜ
-    if (activeAllergensToAvoid.length > 0 && item.alerjenler) {
-      const containsForbiddenAllergen = item.alerjenler.some((alerjen) =>
-        activeAllergensToAvoid.includes(alerjen),
-      );
-      if (containsForbiddenAllergen) return;
+    // Alerjen Filtresi Kontrolü
+    if (activeAllergensToAvoid.length > 0) {
+        let hasAllergen = false;
+        if (item.alerjenler) {
+            hasAllergen = item.alerjenler.some(alerjen => activeAllergensToAvoid.includes(alerjen));
+        }
+        if (hasAllergen) return; 
     }
 
     let guncelMiktar = getCartQuantity(item.id);
     let div = document.createElement("div");
     div.className = "menu-item";
+    
     div.onclick = () => openItemModal(item.id);
 
-    // YENİ: Eğer ürün vegansa kartın sağ altına rozet ekle
     let veganBadge = item.vegan ? `
       <div style="text-align: right; margin-top: 10px;">
         <span style="font-size: 12px; background: #e8f5e9; color: #2e7d32; padding: 3px 10px; border-radius: 12px; font-weight: bold; border: 1px solid #a5d6a7;">🌱 Vegan</span>
@@ -76,88 +99,63 @@ function rendermenu() {
        </div>
        
        <div class="item-controls" onclick="event.stopPropagation()">
-           <button onclick="handleRemoveFromCart(${item.id})" style="padding: 5px 20px; font-size: 18px; border-color: #ff4c4c; color: #ff4c4c; font-weight:bold;">-</button>
+           <button onclick="sepeteEkle(${item.id}, -1)" style="padding: 5px 20px; font-size: 18px; border-color: #ff4c4c; color: #ff4c4c; font-weight:bold; cursor:pointer;">-</button>
            <span id="qty-${item.id}" style="font-weight: bold; font-size: 18px; width: 30px; text-align: center; color: #333;">${guncelMiktar}</span>
-           <button onclick="handleAddToCart(${item.id})" style="padding: 5px 20px; font-size: 18px; border-color: #4CAF50; color: #4CAF50; font-weight:bold;">+</button>
+           <button onclick="sepeteEkle(${item.id}, 1)" style="padding: 5px 20px; font-size: 18px; border-color: #4CAF50; color: #4CAF50; font-weight:bold; cursor:pointer;">+</button>
        </div>
        ${veganBadge}
     `;
 
     menuList.appendChild(div);
   });
-}
 
-// ... Sepet Ekle/Çıkar Fonksiyonları Aynen Kalıyor ...
-function handleAddToCart(id) {
-    let cart = getSafeCart();
-    let existingItem = cart.find(c => c.id === id);
-    if (existingItem) {
-        existingItem.quantity += 1;
-    } else {
-        let menuItem = menu.find(m => m.id === id);
-        cart.push({ ...menuItem, quantity: 1 });
-    }
-    localStorage.setItem("cart", JSON.stringify(cart));
-    document.getElementById(`qty-${id}`).innerText = getCartQuantity(id);
-}
-
-function handleRemoveFromCart(id) {
-    let cart = getSafeCart();
-    let existingItem = cart.find(c => c.id === id);
-    if (existingItem) {
-        existingItem.quantity -= 1;
-        if (existingItem.quantity <= 0) {
-            cart = cart.filter(c => c.id !== id);
-        }
-        localStorage.setItem("cart", JSON.stringify(cart));
-        document.getElementById(`qty-${id}`).innerText = getCartQuantity(id);
-    }
-}
-
-// --- FİLTRE VE ÇEKMECE FONKSİYONLARI ---
-function openFilterDrawer() {
-  const overlay = document.getElementById("filter-overlay");
-  const drawer = document.getElementById("filter-drawer");
-  overlay.style.display = "block";
-  setTimeout(() => { drawer.classList.add("open"); }, 10);
-}
-
-function closeFilterDrawer(event) {
-  if (event && event.target.id !== "filter-overlay") return;
-  const overlay = document.getElementById("filter-overlay");
-  const drawer = document.getElementById("filter-drawer");
-  drawer.classList.remove("open");
-  setTimeout(() => { overlay.style.display = "none"; }, 300);
-}
-
-function toggleVegan() {
-  isVeganOnly = !isVeganOnly;
-  const btn = document.getElementById("vegan-toggle-btn");
-  if (isVeganOnly) {
-    btn.style.background = "#4CAF50";
-    btn.style.color = "white";
-  } else {
-    btn.style.background = "white";
-    btn.style.color = "#4CAF50";
+  if (menuList.innerHTML === "") {
+    menuList.innerHTML = "<p style='color: #666;'>Seçtiğiniz filtrelere uygun ürün bulunamadı.</p>";
   }
-  rendermenu();
 }
 
-function applyFilters() {
-  // Sadece alerjen kutularını kontrol et (vegan toggle'a dokunmuyoruz)
-  const checkboxes = document.querySelectorAll('.alerjen-cb:checked');
-  activeAllergensToAvoid = Array.from(checkboxes).map((cb) => cb.value);
-  
-  rendermenu();
-  closeFilterDrawer();
+// --- FİLTRE ÇEKMECESİ VE YENİ KUTUCUK (GRID) FONKSİYONLARI ---
+function openFilterDrawer() {
+  document.getElementById("filter-drawer").classList.add("open");
+  document.getElementById("filter-overlay").style.display = "block";
+}
+
+function closeFilterDrawer() {
+  document.getElementById("filter-drawer").classList.remove("open");
+  document.getElementById("filter-overlay").style.display = "none";
+}
+
+// Vegan kartına tıklandığında
+function toggleVegan(element) {
+  isVeganOnly = !isVeganOnly;
+  if (isVeganOnly) {
+      element.classList.add("vegan-selected");
+  } else {
+      element.classList.remove("vegan-selected");
+  }
+  rendermenu(); // Tıklandığı an filtreyi uygula
+}
+
+// Alerjen kartlarına tıklandığında
+function toggleAllergen(alerjen, element) {
+  if (activeAllergensToAvoid.includes(alerjen)) {
+      activeAllergensToAvoid = activeAllergensToAvoid.filter(a => a !== alerjen);
+      element.classList.remove("allergen-selected");
+  } else {
+      activeAllergensToAvoid.push(alerjen);
+      element.classList.add("allergen-selected");
+  }
+  rendermenu(); // Tıklandığı an filtreyi uygula
 }
 
 function clearFilters() {
-  // Sadece alerjen kutularının işaretini kaldır (vegan toggle etkilenmez)
-  const checkboxes = document.querySelectorAll('#filter-drawer input[type="checkbox"]');
-  checkboxes.forEach((cb) => (cb.checked = false));
-  
+  isVeganOnly = false;
   activeAllergensToAvoid = [];
+  
+  // Arayüzdeki seçimleri sıfırla
+  document.getElementById("vegan-btn").classList.remove("vegan-selected");
+  let allergenCards = document.querySelectorAll("#allergen-grid .filter-card");
+  allergenCards.forEach(card => card.classList.remove("allergen-selected"));
   
   rendermenu();
   closeFilterDrawer();
@@ -168,7 +166,6 @@ function openItemModal(id) {
   const item = menu.find((m) => m.id === id);
   if (!item) return;
 
-  // Modaldaki isme de vegan ikonu ekle
   let veganModalIcon = item.vegan ? " 🌱" : "";
 
   document.getElementById("modal-img").src = item.resim;
@@ -176,7 +173,7 @@ function openItemModal(id) {
   document.getElementById("modal-rating").innerText = item.puan;
   document.getElementById("modal-price").innerText = item.fiyat + " TL";
   document.getElementById("modal-text").innerText = item.aciklama || "Bu ürün için açıklama bulunmuyor.";
-  document.getElementById("modal-ingredients").innerText = item.icerik.join(", ");
+  document.getElementById("modal-ingredients").innerText = (item.icerik && item.icerik.length > 0) ? item.icerik.join(", ") : "";
 
   const alerjenKutu = document.getElementById("modal-allergens-container");
   if (item.alerjenler && item.alerjenler.length > 0) {
@@ -193,9 +190,3 @@ function closeItemModal(event) {
   if (event && event.target.id !== "item-modal-overlay") return;
   document.getElementById("item-modal-overlay").style.display = "none";
 }
-
-window.addEventListener("load", function () {
-  if (document.getElementById("menu-list")) {
-    menuyuGoster();
-  }
-});
