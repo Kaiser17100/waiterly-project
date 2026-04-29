@@ -16,6 +16,7 @@ let menuDb = [
     resim: "/images/latte.png",
     aciklama: "Yumuşak içimli, taze çekilmiş espresso ve kadifemsi süt.",
     vegan: false,
+    tags: []
   },
   {
     id: 2,
@@ -27,6 +28,7 @@ let menuDb = [
     resim: "/images/caramel-latte.png",
     aciklama: "Karamel severler için tatlı ve dengeli bir kahve deneyimi.",
     vegan: false,
+    tags: []
   },
   {
     id: 3,
@@ -38,6 +40,7 @@ let menuDb = [
     resim: "/images/lemonade.png",
     aciklama: "Taze nane yapraklarıyla hazırlanan ev yapımı serinlik.",
     vegan: true,
+    tags: []
   },
   {
     id: 4,
@@ -49,6 +52,7 @@ let menuDb = [
     resim: "/images/cola.png",
     aciklama: "Buz gibi, ferahlatıcı klasik lezzet.",
     vegan: true,
+    tags: []
   },
   {
     id: 5,
@@ -71,6 +75,7 @@ let menuDb = [
     resim: "/images/smoothie.png",
     aciklama: "Taze meyvelerle hazırlanan sağlıklı ve doyurucu atıştırmalık.",
     vegan: false,
+    tags: []
   },
   {
     id: 7,
@@ -82,6 +87,7 @@ let menuDb = [
     resim: "/images/sandwich.png",
     aciklama: "Hafif bir mola için taze yeşillikli soğuk sandviç.",
     vegan: true,
+    tags: []
   },
   {
     id: 8,
@@ -93,6 +99,7 @@ let menuDb = [
     resim: "/images/bowl.png",
     aciklama: "Bitkisel protein kaynağı, taze ve besleyici fit kase.",
     vegan: true,
+    tags: []
   },
   {
     id: 9,
@@ -104,6 +111,7 @@ let menuDb = [
     resim: "/images/brownie.png",
     aciklama: "Bol cevizli ve yoğun bitter çikolatalı ıslak lezzet bombası.",
     vegan: false,
+    tags: []
   },
   {
     id: 10,
@@ -115,6 +123,7 @@ let menuDb = [
     resim: "/images/brownie.png",
     aciklama: "Saf Karamel.",
     vegan: false,
+    tags: []
   },
 ];
 
