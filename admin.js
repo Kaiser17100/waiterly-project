@@ -230,8 +230,12 @@ function deleteRequest(id) {
 // ══════════════════════════════════════════
 // MENU
 // ══════════════════════════════════════════
+let currentMenuData = []; 
+let editingMenuId = null; 
+
 function loadAdminMenu() {
   fetch("/api/menu").then(r => r.json()).then(data => {
+    currentMenuData = data; 
     const tbody = document.getElementById("admin-menu-list");
     tbody.innerHTML = "";
     data.forEach(item => {
@@ -243,92 +247,58 @@ function loadAdminMenu() {
         <td>${item.fiyat} TL</td>
         <td>${item.aciklama || "-"}</td>
         <td>${item.alerjenler ? item.alerjenler.join(", ") : "-"}</td>
-        <td><button class="btn-delete" onclick="deleteItem(${item.id})">Sil</button></td>
+        <td>
+          <button class="btn-submit" style="padding:8px 12px; font-size:12px; background:#2196f3; margin-right:4px;" onclick="editMenu(${item.id})">✏️</button>
+          <button class="btn-delete" onclick="deleteItem(${item.id})">Sil</button>
+        </td>
       </tr>`;
     });
   });
 }
 
-function addNewItem() {
-  const isim = document.getElementById("add-isim").value.trim();
-  const fiyat = document.getElementById("add-fiyat").value;
-  if (!isim || !fiyat) { alert("⚠️ Ürün adı ve fiyat zorunludur!"); return; }
-  const aciklama = document.getElementById("add-aciklama").value.trim();
-  const alerjenInput = document.getElementById("add-alerjenler").value.trim();
-  const manualResim = document.getElementById("add-resim").value.trim();
-  const alerjenler = alerjenInput ? alerjenInput.split(",").map(a => a.trim()) : [];
-  const resim = menuImageBase64 || manualResim || "/images/americano.jpg";
+function editMenu(id) {
+  const item = currentMenuData.find(i => i.id === id);
+  if (!item) return;
 
-  fetch("/api/menu", {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({isim, fiyat:parseFloat(fiyat), aciklama, alerjenler, puan:5.0, resim})
-  }).then(r => {
-    if (r.ok) {
-      loadAdminMenu();
-      alert("✅ Ürün başarıyla eklendi!");
-      ["add-isim","add-fiyat","add-aciklama","add-alerjenler","add-resim"].forEach(id => document.getElementById(id).value = "");
-      document.getElementById("add-resim-file").value = "";
-      menuImageBase64 = null;
-      document.getElementById("upload-placeholder").style.display = "block";
-      document.getElementById("upload-preview-wrap").style.display = "none";
-    }
-  });
-}
+  editingMenuId = id;
 
-function deleteItem(id) {
-  if (confirm("Silinsin mi?"))
-    fetch(`/api/menu/${id}`, {method:"DELETE"}).then(() => loadAdminMenu());
-}
+  document.getElementById("add-isim").value = item.isim;
+  document.getElementById("add-fiyat").value = item.fiyat;
+  document.getElementById("add-aciklama").value = item.aciklama || "";
+  document.getElementById("add-alerjenler").value = item.alerjenler ? item.alerjenler.join(", ") : "";
 
-// ══════════════════════════════════════════
-// ORDERS
-// ══════════════════════════════════════════
-function loadOrders() {
-  const orders = JSON.parse(localStorage.getItem("orderHistory")) || [];
-  const tbody = document.getElementById("admin-order-list");
-  tbody.innerHTML = "";
-  if (!orders.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#999;padding:30px;">Henüz sipariş kaydı yok.</td></tr>`;
-    return;
+  menuImageBase64 = null;
+  if (item.resim && !item.resim.startsWith("data:")) {
+    document.getElementById("add-resim").value = item.resim;
+  } else {
+    document.getElementById("add-resim").value = "";
   }
-  [...orders].reverse().forEach((order, index) => {
-    const urunDetay = order.urunler.map(u => `${u.miktar||u.quantity}x ${u.isim}`).join(", ");
-    tbody.innerHTML += `<tr>
-      <td>${order.tarih||"-"}</td><td>${order.saat||"-"}</td><td>${urunDetay}</td>
-      <td><strong>${order.toplamTutar.toFixed(2)} TL</strong></td>
-      <td><button class="btn-delete" onclick="deleteOrder(${orders.length-1-index})">Sil</button></td>
-    </tr>`;
-  });
-}
 
-function deleteOrder(idx) {
-  if (confirm("Silinsin mi?")) {
-    let orders = JSON.parse(localStorage.getItem("orderHistory")) || [];
-    orders.splice(idx, 1);
-    localStorage.setItem("orderHistory", JSON.stringify(orders));
-    loadOrders();
+  if (item.resim) {
+    document.getElementById("upload-placeholder").style.display = "none";
+    document.getElementById("upload-preview-wrap").style.display = "block";
+    document.getElementById("upload-preview-img").src = item.resim;
   }
+
+  document.querySelector(".add-form h3").innerText = "✏️ Ürünü Düzenle";
+  const btnSubmit = document.querySelector(".add-form .btn-submit");
+  btnSubmit.innerText = "💾 Değişiklikleri Kaydet";
+  btnSubmit.setAttribute("onclick", "saveMenuItem()");
+
+  if (!document.getElementById("cancel-edit-btn")) {
+    const cancelBtn = document.createElement("button");
+    cancelBtn.id = "cancel-edit-btn";
+    cancelBtn.className = "btn-modal-cancel";
+    cancelBtn.style.marginLeft = "10px";
+    cancelBtn.innerText = "İptal";
+    cancelBtn.onclick = resetMenuForm;
+    btnSubmit.parentNode.insertBefore(cancelBtn, btnSubmit.nextSibling);
+  }
+
+  document.querySelector(".add-form").scrollIntoView({ behavior: 'smooth' });
 }
 
-function addManualOrder() {
-  const urun = document.getElementById("manual-urunler").value.trim();
-  const tutar = parseFloat(document.getElementById("manual-tutar").value);
-  if (!urun || !tutar) return alert("Eksik bilgi!");
-  const simdi = new Date();
-  const history = JSON.parse(localStorage.getItem("orderHistory")) || [];
-  history.push({
-    tarih: simdi.toLocaleDateString("tr-TR"),
-    saat: simdi.toLocaleTimeString("tr-TR", {hour:"2-digit",minute:"2-digit"}),
-    toplamTutar: tutar,
-    urunler: [{isim:urun, quantity:1}]
-  });
-  localStorage.setItem("orderHistory", JSON.stringify(history));
-  loadOrders();
-}
-
-function logout() {
-  fetch("/api/logout", {method:"POST"}).then(() => window.location.href = "/login.html");
-}
-
-document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+function resetMenuForm() {
+  editingMenuId = null;
+  
+  document.querySelector(".add-form h3").innerText = "Yeni Ürün Ekle
