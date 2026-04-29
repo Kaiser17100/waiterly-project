@@ -31,22 +31,34 @@ fetch('/api/menu')
     .catch(err => console.error("Menü yüklenemedi:", err));
 
 function selectMood(mood, clickedBtn) {
-    // UI Update for buttons
+    // Check if the button is already active
+    const isActive = clickedBtn.classList.contains('active');
+    
+    // UI Update: Remove active class from all buttons
     document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+
+    const resultsContainer = document.getElementById('results-container');
+    const title = document.getElementById('results-title');
+
+    // If it was already active, we unselect it and clear the page
+    if (isActive) {
+        resultsContainer.innerHTML = '<p style="grid-column: 1/-1; color:#888;">Lütfen bir ruh hali seçin.</p>';
+        title.style.display = 'none';
+        return; 
+    }
+
+    // Otherwise, activate the clicked button
     clickedBtn.classList.add('active');
 
-    // FIX: Check for both 'tags' and 'etiketler' to handle admin panel data
+    // Filter Logic
     const moodTagsArray = mood.tags || mood.etiketler || [];
     const targetTags = moodTagsArray.map(t => t.toLowerCase());
     
     const matchedProducts = menuData.filter(product => {
-        // FIX: Check for both 'tags' and 'etiketler' on the product
         const productTagsArray = product.tags || product.etiketler;
-        
         if (!productTagsArray || !Array.isArray(productTagsArray)) return false;
         
         const productTags = productTagsArray.map(t => t.toLowerCase());
-        // Check if there is an intersection between product tags and mood tags
         return productTags.some(tag => targetTags.includes(tag));
     });
 
