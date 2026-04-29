@@ -247,6 +247,7 @@ function loadAdminMenu() {
         <td>${item.fiyat} TL</td>
         <td>${item.aciklama || "-"}</td>
         <td>${item.alerjenler ? item.alerjenler.join(", ") : "-"}</td>
+        <td><span style="background:#eee; padding:4px 8px; border-radius:4px; font-size:12px; color:#555;">${item.etiketler ? item.etiketler.join(", ") : "-"}</span></td>
         <td>
           <button class="btn-submit" style="padding:8px 12px; font-size:12px; background:#2196f3; margin-right:4px;" onclick="editMenu(${item.id})">✏️</button>
           <button class="btn-delete" onclick="deleteItem(${item.id})">Sil</button>
@@ -266,6 +267,7 @@ function editMenu(id) {
   document.getElementById("add-fiyat").value = item.fiyat;
   document.getElementById("add-aciklama").value = item.aciklama || "";
   document.getElementById("add-alerjenler").value = item.alerjenler ? item.alerjenler.join(", ") : "";
+  document.getElementById("add-etiketler").value = item.etiketler ? item.etiketler.join(", ") : "";
 
   menuImageBase64 = null;
   if (item.resim && !item.resim.startsWith("data:")) {
@@ -309,7 +311,7 @@ function resetMenuForm() {
   const cancelBtn = document.getElementById("cancel-edit-btn");
   if (cancelBtn) cancelBtn.remove();
 
-  ["add-isim", "add-fiyat", "add-aciklama", "add-alerjenler", "add-resim"].forEach(id => document.getElementById(id).value = "");
+  ["add-isim", "add-fiyat", "add-aciklama", "add-alerjenler", "add-etiketler", "add-resim"].forEach(id => document.getElementById(id).value = "");
   document.getElementById("add-resim-file").value = "";
   menuImageBase64 = null;
   document.getElementById("upload-placeholder").style.display = "block";
@@ -323,14 +325,17 @@ function saveMenuItem() {
   
   const aciklama = document.getElementById("add-aciklama").value.trim();
   const alerjenInput = document.getElementById("add-alerjenler").value.trim();
+  const etiketInput = document.getElementById("add-etiketler").value.trim();
   const manualResim = document.getElementById("add-resim").value.trim();
+  
   const alerjenler = alerjenInput ? alerjenInput.split(",").map(a => a.trim()) : [];
+  const etiketler = etiketInput ? etiketInput.split(",").map(e => e.trim()) : []; 
   const resim = menuImageBase64 || manualResim || "/images/americano.jpg";
 
   fetch(`/api/menu/${editingMenuId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ isim, fiyat: parseFloat(fiyat), aciklama, alerjenler, resim })
+    body: JSON.stringify({ isim, fiyat: parseFloat(fiyat), aciklama, alerjenler, etiketler, resim }) 
   }).then(r => {
     if (r.ok) {
       loadAdminMenu();
@@ -346,16 +351,20 @@ function addNewItem() {
   const isim = document.getElementById("add-isim").value.trim();
   const fiyat = document.getElementById("add-fiyat").value;
   if (!isim || !fiyat) { alert("⚠️ Ürün adı ve fiyat zorunludur!"); return; }
+  
   const aciklama = document.getElementById("add-aciklama").value.trim();
   const alerjenInput = document.getElementById("add-alerjenler").value.trim();
+  const etiketInput = document.getElementById("add-etiketler").value.trim();
   const manualResim = document.getElementById("add-resim").value.trim();
+  
   const alerjenler = alerjenInput ? alerjenInput.split(",").map(a => a.trim()) : [];
+  const etiketler = etiketInput ? etiketInput.split(",").map(e => e.trim()) : []; 
   const resim = menuImageBase64 || manualResim || "/images/americano.jpg";
 
   fetch("/api/menu", {
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({isim, fiyat:parseFloat(fiyat), aciklama, alerjenler, puan:5.0, resim})
+    body:JSON.stringify({isim, fiyat:parseFloat(fiyat), aciklama, alerjenler, etiketler, puan:5.0, resim})
   }).then(r => {
     if (r.ok) {
       loadAdminMenu();
