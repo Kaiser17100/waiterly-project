@@ -19,6 +19,7 @@ let menuImageBase64 = null;
 // ══════════════════════════════════════════
 function renderEmployees() {
   const grid = document.getElementById("employees-grid");
+  if(!grid) return;
   grid.innerHTML = "";
   employeesData.forEach(emp => {
     const statusClass = emp.durum === "active" ? "status-active" : "status-inactive";
@@ -51,7 +52,7 @@ function renderEmployees() {
 }
 
 // ══════════════════════════════════════════
-// MODAL
+// MODAL FOR EMPLOYEES
 // ══════════════════════════════════════════
 function openEditModal(id) {
   const emp = employeesData.find(e => e.id === id);
@@ -80,7 +81,6 @@ function closeModal() {
   modalPhotoBase64 = null;
 }
 
-// Close on backdrop click
 document.getElementById("emp-modal").addEventListener("click", function(e) {
   if (e.target === this) closeModal();
 });
@@ -154,7 +154,6 @@ function addNewEmployee() {
   employeesData.push(newEmp);
   renderEmployees();
 
-  // Formu temizle
   ["new-emp-ad","new-emp-rol","new-emp-telefon","new-emp-baslangic","new-emp-email","new-emp-notlar"]
     .forEach(id => document.getElementById(id).value = "");
   document.getElementById("new-emp-durum").value = "active";
@@ -193,10 +192,10 @@ function switchPanel(name) {
   document.getElementById(`btn-${name}`).classList.add("active");
   
   if (name === "menu") loadAdminMenu();
-  else if (name === "orders") loadOrders(); // Assuming you have this
-  else if (name === "requests") loadAdminRequests(); // Assuming you have this
-  else if (name === "employees") renderEmployees(); // Assuming you have this
-  else if (name === "moods") loadAdminMoods(); // YENİ: Ruh Hali Yükleme
+  else if (name === "orders") loadOrders();
+  else if (name === "requests") loadAdminRequests();
+  else if (name === "employees") renderEmployees();
+  else if (name === "moods") loadAdminMoods(); 
 }
 
 function goBackToNav() {
@@ -211,6 +210,7 @@ function goBackToNav() {
 function loadAdminRequests() {
   fetch("/api/requests").then(r => r.json()).then(data => {
     const tbody = document.getElementById("admin-request-list");
+    if(!tbody) return;
     tbody.innerHTML = "";
     data.forEach(item => {
       const silBtn = item.id === 5 ? "" : `<button class="btn-delete" onclick="deleteRequest(${item.id})">Sil</button>`;
@@ -258,125 +258,6 @@ function loadAdminMenu() {
       </tr>`;
     });
   });
-}
-
-let currentMoodsData = JSON.parse(localStorage.getItem('moodsDB')) || [
-  { id: 1, isim: "Enerjik Hissetmek", emoji: "⚡", etiketler: ["enerjik", "kafein", "uyandirici"] },
-  { id: 2, isim: "Rahatlamak İstiyorum", emoji: "🧘‍♀️", etiketler: ["rahatlatici", "kafeinsiz", "sicak"] },
-  { id: 3, isim: "Tatlı Krizi", emoji: "🍫", etiketler: ["tatli", "cikolatali", "kremali"] }
-];
-let editingMoodId = null;
-
-function loadAdminMoods() {
-  // Save to localStorage so frontend can use it
-  localStorage.setItem('moodsDB', JSON.stringify(currentMoodsData));
-  
-  const tbody = document.getElementById("admin-mood-list");
-  if(!tbody) return;
-  tbody.innerHTML = "";
-  
-  currentMoodsData.forEach(mood => {
-    tbody.innerHTML += `<tr>
-      <td>#${mood.id}</td>
-      <td><strong>${mood.isim}</strong></td>
-      <td>${mood.emoji}</td>
-      <td><span style="background:#e3f2fd; padding:4px 8px; border-radius:4px; font-size:12px; color:#1565c0;">${mood.etiketler.join(", ")}</span></td>
-      <td>
-        <button class="btn-submit" style="padding:8px 12px; font-size:12px; background:#2196f3; margin-right:4px;" onclick="editMood(${mood.id})">✏️</button>
-        <button class="btn-delete" onclick="deleteMood(${mood.id})">Sil</button>
-      </td>
-    </tr>`;
-  });
-}
-
-function addNewMood() {
-  const isim = document.getElementById("add-mood-isim").value.trim();
-  const emoji = document.getElementById("add-mood-emoji").value.trim() || "✨";
-  const etiketInput = document.getElementById("add-mood-etiketler").value.trim();
-  
-  if (!isim || !etiketInput) { alert("⚠️ İsim ve etiketler zorunludur!"); return; }
-  
-  const etiketler = etiketInput.split(",").map(e => e.trim().toLowerCase());
-  const newId = currentMoodsData.length > 0 ? Math.max(...currentMoodsData.map(m => m.id)) + 1 : 1;
-
-  currentMoodsData.push({ id: newId, isim, emoji, etiketler });
-  
-  alert("✅ Ruh hali başarıyla eklendi!");
-  document.getElementById("add-mood-isim").value = "";
-  document.getElementById("add-mood-emoji").value = "";
-  document.getElementById("add-mood-etiketler").value = "";
-  
-  loadAdminMoods();
-}
-
-function editMood(id) {
-  const mood = currentMoodsData.find(m => m.id === id);
-  if (!mood) return;
-  
-  editingMoodId = id;
-  document.getElementById("add-mood-isim").value = mood.isim;
-  document.getElementById("add-mood-emoji").value = mood.emoji;
-  document.getElementById("add-mood-etiketler").value = mood.etiketler.join(", ");
-  
-  document.querySelector("#mood-add-form h3").innerText = "✏️ Ruh Halini Düzenle";
-  const btnSubmit = document.querySelector("#mood-add-form .btn-submit");
-  btnSubmit.innerText = "💾 Kaydet";
-  btnSubmit.setAttribute("onclick", "saveMood()");
-  
-  if (!document.getElementById("cancel-mood-btn")) {
-    const cancelBtn = document.createElement("button");
-    cancelBtn.id = "cancel-mood-btn";
-    cancelBtn.className = "btn-delete";
-    cancelBtn.style.marginLeft = "10px";
-    cancelBtn.style.background = "#999";
-    cancelBtn.innerText = "İptal";
-    cancelBtn.onclick = resetMoodForm;
-    btnSubmit.parentNode.insertBefore(cancelBtn, btnSubmit.nextSibling);
-  }
-}
-
-function saveMood() {
-  const isim = document.getElementById("add-mood-isim").value.trim();
-  const emoji = document.getElementById("add-mood-emoji").value.trim() || "✨";
-  const etiketInput = document.getElementById("add-mood-etiketler").value.trim();
-  
-  if (!isim || !etiketInput) { alert("⚠️ İsim ve etiketler zorunludur!"); return; }
-  
-  const idx = currentMoodsData.findIndex(m => m.id === editingMoodId);
-  if (idx !== -1) {
-    currentMoodsData[idx] = {
-      id: editingMoodId,
-      isim,
-      emoji,
-      etiketler: etiketInput.split(",").map(e => e.trim().toLowerCase())
-    };
-  }
-  
-  alert("✅ Ruh hali başarıyla güncellendi!");
-  resetMoodForm();
-  loadAdminMoods();
-}
-
-function resetMoodForm() {
-  editingMoodId = null;
-  document.getElementById("add-mood-isim").value = "";
-  document.getElementById("add-mood-emoji").value = "";
-  document.getElementById("add-mood-etiketler").value = "";
-  
-  document.querySelector("#mood-add-form h3").innerText = "Yeni Ruh Hali Ekle";
-  const btnSubmit = document.querySelector("#mood-add-form .btn-submit");
-  btnSubmit.innerText = "✅ Ruh Hali Ekle";
-  btnSubmit.setAttribute("onclick", "addNewMood()");
-  
-  const cancelBtn = document.getElementById("cancel-mood-btn");
-  if (cancelBtn) cancelBtn.remove();
-}
-
-function deleteMood(id) {
-  if (confirm("Bu ruh halini silmek istediğinize emin misiniz?")) {
-    currentMoodsData = currentMoodsData.filter(m => m.id !== id);
-    loadAdminMoods();
-  }
 }
 
 function editMenu(id) {
@@ -507,6 +388,7 @@ function deleteItem(id) {
 function loadOrders() {
   const orders = JSON.parse(localStorage.getItem("orderHistory")) || [];
   const tbody = document.getElementById("admin-order-list");
+  if(!tbody) return;
   tbody.innerHTML = "";
   if (!orders.length) {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#999;padding:30px;">Henüz sipariş kaydı yok.</td></tr>`;
@@ -552,3 +434,125 @@ function logout() {
 }
 
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+
+// ══════════════════════════════════════════
+// MOOD YÖNETİMİ
+// ══════════════════════════════════════════
+let currentMoodsData = JSON.parse(localStorage.getItem('moodsDB')) || [
+  { id: 1, isim: "Enerjik Hissetmek", emoji: "⚡", etiketler: ["enerjik", "kafein", "uyandirici"] },
+  { id: 2, isim: "Rahatlamak İstiyorum", emoji: "🧘‍♀️", etiketler: ["rahatlatici", "kafeinsiz", "sicak"] },
+  { id: 3, isim: "Tatlı Krizi", emoji: "🍫", etiketler: ["tatli", "cikolatali", "kremali"] }
+];
+let editingMoodId = null;
+
+function loadAdminMoods() {
+  localStorage.setItem('moodsDB', JSON.stringify(currentMoodsData));
+  
+  const tbody = document.getElementById("admin-mood-list");
+  if(!tbody) return;
+  tbody.innerHTML = "";
+  
+  currentMoodsData.forEach(mood => {
+    tbody.innerHTML += `<tr>
+      <td>#${mood.id}</td>
+      <td><strong>${mood.isim}</strong></td>
+      <td>${mood.emoji}</td>
+      <td><span style="background:#e3f2fd; padding:4px 8px; border-radius:4px; font-size:12px; color:#1565c0;">${mood.etiketler.join(", ")}</span></td>
+      <td>
+        <button class="btn-submit" style="padding:8px 12px; font-size:12px; background:#2196f3; margin-right:4px;" onclick="editMood(${mood.id})">✏️</button>
+        <button class="btn-delete" onclick="deleteMood(${mood.id})">Sil</button>
+      </td>
+    </tr>`;
+  });
+}
+
+function addNewMood() {
+  const isim = document.getElementById("add-mood-isim").value.trim();
+  const emoji = document.getElementById("add-mood-emoji").value.trim() || "✨";
+  const etiketInput = document.getElementById("add-mood-etiketler").value.trim();
+  
+  if (!isim || !etiketInput) { alert("⚠️ İsim ve etiketler zorunludur!"); return; }
+  
+  const etiketler = etiketInput.split(",").map(e => e.trim().toLowerCase());
+  const newId = currentMoodsData.length > 0 ? Math.max(...currentMoodsData.map(m => m.id)) + 1 : 1;
+
+  currentMoodsData.push({ id: newId, isim, emoji, etiketler });
+  
+  alert("✅ Ruh hali başarıyla eklendi!");
+  document.getElementById("add-mood-isim").value = "";
+  document.getElementById("add-mood-emoji").value = "";
+  document.getElementById("add-mood-etiketler").value = "";
+  
+  loadAdminMoods();
+}
+
+function editMood(id) {
+  const mood = currentMoodsData.find(m => m.id === id);
+  if (!mood) return;
+  
+  editingMoodId = id;
+  document.getElementById("add-mood-isim").value = mood.isim;
+  document.getElementById("add-mood-emoji").value = mood.emoji;
+  document.getElementById("add-mood-etiketler").value = mood.etiketler.join(", ");
+  
+  document.querySelector("#mood-add-form h3").innerText = "✏️ Ruh Halini Düzenle";
+  const btnSubmit = document.querySelector("#mood-add-form .btn-submit");
+  btnSubmit.innerText = "💾 Kaydet";
+  btnSubmit.setAttribute("onclick", "saveMood()");
+  
+  if (!document.getElementById("cancel-mood-btn")) {
+    const cancelBtn = document.createElement("button");
+    cancelBtn.id = "cancel-mood-btn";
+    cancelBtn.className = "btn-delete";
+    cancelBtn.style.marginLeft = "10px";
+    cancelBtn.style.background = "#999";
+    cancelBtn.innerText = "İptal";
+    cancelBtn.onclick = resetMoodForm;
+    btnSubmit.parentNode.insertBefore(cancelBtn, btnSubmit.nextSibling);
+  }
+}
+
+function saveMood() {
+  const isim = document.getElementById("add-mood-isim").value.trim();
+  const emoji = document.getElementById("add-mood-emoji").value.trim() || "✨";
+  const etiketInput = document.getElementById("add-mood-etiketler").value.trim();
+  
+  if (!isim || !etiketInput) { alert("⚠️ İsim ve etiketler zorunludur!"); return; }
+  
+  const idx = currentMoodsData.findIndex(m => m.id === editingMoodId);
+  if (idx !== -1) {
+    currentMoodsData[idx] = {
+      id: editingMoodId,
+      isim,
+      emoji,
+      etiketler: etiketInput.split(",").map(e => e.trim().toLowerCase())
+    };
+  }
+  
+  alert("✅ Ruh hali başarıyla güncellendi!");
+  resetMoodForm();
+  loadAdminMoods();
+}
+
+function resetMoodForm() {
+  editingMoodId = null;
+  document.getElementById("add-mood-isim").value = "";
+  document.getElementById("add-mood-emoji").value = "";
+  document.getElementById("add-mood-etiketler").value = "";
+  
+  document.querySelector("#mood-add-form h3").innerText = "Yeni Ruh Hali Ekle";
+  const btnSubmit = document.querySelector("#mood-add-form .btn-submit");
+  btnSubmit.innerText = "✅ Ruh Hali Ekle";
+  btnSubmit.setAttribute("onclick", "addNewMood()");
+  
+  const cancelBtn = document.getElementById("cancel-mood-btn");
+  if (cancelBtn) cancelBtn.remove();
+}
+
+function deleteMood(id) {
+  if (confirm("Bu ruh halini silmek istediğinize emin misiniz?")) {
+    currentMoodsData = currentMoodsData.filter(m => m.id !== id);
+    loadAdminMoods();
+  }
+}
