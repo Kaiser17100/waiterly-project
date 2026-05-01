@@ -556,3 +556,32 @@ function deleteMood(id) {
     loadAdminMoods();
   }
 }
+
+// ══════════════════════════════════════════
+// OTOMATİK ÇIKIŞ (Hareketsizlik ve Sekme Kapatma)
+// ══════════════════════════════════════════
+
+// 1. 5 Dakikalık Hareketsizlik Kontrolü
+let inactivityTimer;
+const INACTIVITY_LIMIT = 5 * 60 * 1000; // 5 dakika (milisaniye cinsinden)
+
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  // Süre dolduğunda mevcut logout() fonksiyonunu çağırır
+  inactivityTimer = setTimeout(logout, INACTIVITY_LIMIT);
+}
+
+// Kullanıcı hareketlerini dinleyerek sayacı sıfırlıyoruz
+['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(event => {
+  document.addEventListener(event, resetInactivityTimer, true);
+});
+
+// Sayfa yüklendiğinde sayacı başlat
+resetInactivityTimer();
+
+// 2. Paneli Kapatma Kontrolü (Sekme veya Tarayıcıyı Kapatma)
+window.addEventListener('pagehide', function() {
+  // Sayfa kapanırken fetch istekleri iptal edilebileceği için sendBeacon kullanmak en güvenli yoldur.
+  // Mevcut logout sisteminiz /api/logout endpoint'ine POST attığı için aynı adresi kullanıyoruz.
+  navigator.sendBeacon('/api/logout');
+});
